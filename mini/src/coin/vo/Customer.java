@@ -9,6 +9,18 @@ public class Customer {
 	private String custPhone;
 	private String custAddr;
 	
+	public Customer(String custNo, String custName, String custId, String custPw, String custSsn, String custPhone,
+			String custAddr) {
+		super();
+		this.custNo = custNo;
+		this.custName = custName;
+		this.custId = custId;
+		this.custPw = custPw;
+		this.custSsn = custSsn;
+		this.custPhone = custPhone;
+		this.custAddr = custAddr;
+	}
+
 	public String getCustNo() {
 		return custNo;
 	}
