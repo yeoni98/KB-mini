@@ -1,0 +1,10 @@
+/.metadata/
+/.recommenders/
+/.settings
+.classpath
+.project
+.gitignore
+/util
+/sqldeveloper-22.2.1.234.1810-x64
+/eclipse
+/Microsoft VS Code
