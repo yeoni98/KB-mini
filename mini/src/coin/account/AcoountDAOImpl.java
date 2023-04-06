@@ -1,6 +1,5 @@
 package coin.account;
 
-import java.io.NotActiveException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -13,6 +12,8 @@ import coin.exception.NotEfficientException;
 import coin.exception.RecordNotFoundException;
 import coin.vo.Account;
 import coin.vo.Coin;
+import coin.vo.Wallet;
+import coin.wallet.WalletDAOImpl;
 import config.ServerInfo;
 
 public class AcoountDAOImpl implements AccountDAO {
@@ -27,6 +28,7 @@ public class AcoountDAOImpl implements AccountDAO {
 	@Override
 	public Connection getConnect() throws SQLException {
 		Connection conn = DriverManager.getConnection(ServerInfo.URL, ServerInfo.USER, ServerInfo.PASSWORD);
+		System.out.println("DB연결");
 		return conn;
 	}
 
@@ -162,18 +164,19 @@ public class AcoountDAOImpl implements AccountDAO {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		
+		int balance = 0;
 		try {
 			conn = getConnect();
 
 			String query = "SELECT balance FROM account WHERE cust_no = ?";
-			
+
 			ps = conn.prepareStatement(query);
 			ps.setInt(1, custNo);
 			
 			rs = ps.executeQuery();
 			
 			if (rs.next()) {
-				rs.getInt("balance");
+				balance = rs.getInt("balance");
 			} else {
 				throw new RecordNotFoundException("존재하지 않는 회원입니다.");
 			}
@@ -181,7 +184,7 @@ public class AcoountDAOImpl implements AccountDAO {
 			closeAll(ps, conn);
 		}	
 		
-		return 0;
+		return balance;
 	}
 	
 	@Override
@@ -189,39 +192,46 @@ public class AcoountDAOImpl implements AccountDAO {
 		Connection conn = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
-		
+		Account acc = null;
 		try {
 			conn = getConnect();
-
-			String query = "SELECT * FROM account WHERE cust_no = ?";
+			System.out.println("getConnect....");
+			String query = "SELECT account_no, cust_no, balance, status, c_date   FROM account WHERE cust_no = ?";
 			
 			ps = conn.prepareStatement(query);
 			ps.setInt(1, custNo);
 			
 			rs = ps.executeQuery();
-			
+			System.out.println("rs..생성");
 			if (rs.next()) {
-				return new Account(rs.getString("account_no"), rs.getString("cust_no"), rs.getInt("balance"), rs.getInt("status"), rs.getString("cDate"));
+//				System.out.println("if...진입");
+//				System.out.println(rs.next());
+				acc =  new Account(rs.getString("account_no"), rs.getInt("cust_no"), rs.getInt("balance"), rs.getString("status"), rs.getDate("c_date"));
+				System.out.println(acc);
 			} else {
+				System.out.println("aaaa???");
 				throw new RecordNotFoundException("존재하지 않는 회원입니다.");
 			}
+			return acc;
 		} finally {
 			closeAll(ps, conn);
 		}		
 	}
 
 	@Override
-	public void buyCoin(int custNo, String coinCd, int quentity) throws SQLException, RecordNotFoundException {
+	public void buyCoin(int custNo, String coinCd, int quentity) throws SQLException, RecordNotFoundException, NotEfficientException {
+		System.out.println("???");
 		Connection conn = null;
 		PreparedStatement ps = null;
 
 		try {
 			conn = getConnect();
-			conn.setAutoCommit(false);	
+
+//			conn.setAutoCommit(false);	
 			
 			// 잔액 조회
 			Account accountInfo = getAccountInfo(custNo);
-			
+
 			// 해당 코인 가격 가져오기
 			CoinDAOImpl coinDAOImpl = CoinDAOImpl.getInstance();
 			Coin coinInfo = coinDAOImpl.getCoinByCoinCd(coinCd);
@@ -230,7 +240,6 @@ public class AcoountDAOImpl implements AccountDAO {
 			// 잔액이 충분한지 체크
 			if (accountInfo.getBalance() >= total) {
 				int balance = accountInfo.getBalance() - total;
-				
 				String query = "UPDATE account SET balance = ? WHERE account_no = ?";
 				
 				ps = conn.prepareStatement(query);
@@ -240,13 +249,14 @@ public class AcoountDAOImpl implements AccountDAO {
 				ps.executeUpdate();
 				
 				// TODO: insertWallet (다연이하는중)
-				
+				WalletDAOImpl dao = WalletDAOImpl.getInstance();				   
+				dao.createWallet(new Wallet(coinCd, quentity, coinInfo.getcNowPrice(), "1", accountInfo.getAccountNo()));
+				System.out.println(quentity + "개의 " + coinInfo.getcName() + "매수 완료!");
+
 				conn.commit();
 			} else {
 				throw new NotEfficientException("잔고가 충분하지 않습니다. ");
 			}
-		} catch(Exception e) {
-			conn.rollback();
 		} finally {
 			closeAll(ps, conn);
 		}
@@ -320,13 +330,16 @@ public class AcoountDAOImpl implements AccountDAO {
 				String query = "UPDATE account SET balance = ? WHERE account_no = ?";
 				
 				ps = conn.prepareStatement(query);
-				ps.setInt(1, balance);
+				ps.setDouble(1, balance);
 				ps.setInt(2, custNo);
 
 				ps.executeUpdate();
 				
 				// TODO: insertWallet (다연이하는중)
+				WalletDAOImpl dao = WalletDAOImpl.getInstance();				   
+				dao.createWallet(new Wallet(coinCd, quentity, coinInfo.getcNowPrice(), "0", accountInfo.getAccountNo()));
 				
+				System.out.println(quentity + "개의 " + coinInfo.getcName() + " 매도 완료!");
 				conn.commit();
 			} else {
 				throw new NotEfficientException("보유 코인이 충분하지 않습니다. ");

@@ -1,4 +1,4 @@
-package coin.account.test;
+package coin.test;
 
 import coin.account.AcoountDAOImpl;
 

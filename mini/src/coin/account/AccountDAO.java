@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import coin.exception.AlreadyHasAccountException;
+import coin.exception.NotEfficientException;
 import coin.exception.RecordNotFoundException;
 import coin.vo.Account;
 
@@ -19,6 +20,6 @@ public interface AccountDAO {
 	int getAccountBalance(int custNo) throws SQLException, RecordNotFoundException;
 	Account getAccountInfo(int custNo) throws SQLException, RecordNotFoundException;
 	
-	void buyCoin(int custNo, String coinCd, int quentity) throws SQLException, RecordNotFoundException;
+	void buyCoin(int custNo, String coinCd, int quentity) throws SQLException, RecordNotFoundException, NotEfficientException;
 	void sellCoin(int custNo, String coinCd, int quentity) throws SQLException, RecordNotFoundException;
 }

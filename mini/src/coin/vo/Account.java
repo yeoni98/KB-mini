@@ -1,14 +1,16 @@
 package coin.vo;
 
+import java.util.Date;
+
 public class Account {	
 	private String accountNo;
-	private String custNo;
+	private int custNo;
 	private int balance;
-	private int status;
-	private String cDate;
+	private String status;
+	private Date cDate;
 	
 
-	public Account(String accountNo, String custNo, int balance, int status, String cDate) {
+	public Account(String accountNo, int custNo, int balance, String status, Date cDate) {
 		super();
 		this.accountNo = accountNo;
 		this.custNo = custNo;
@@ -26,11 +28,11 @@ public class Account {
 		this.accountNo = accountNo;
 	}
 
-	public String getCustNo() {
+	public int getCustNo() {
 		return custNo;
 	}
 
-	public void setCustNo(String custNo) {
+	public void setCustNo(int custNo) {
 		this.custNo = custNo;
 	}
 
@@ -42,19 +44,19 @@ public class Account {
 		this.balance = balance;
 	}
 
-	public int getStatus() {
+	public String getStatus() {
 		return status;
 	}
 
-	public void setStatus(int status) {
+	public void setStatus(String status) {
 		this.status = status;
 	}
 
-	public String getcDate() {
+	public Date getcDate() {
 		return cDate;
 	}
 
-	public void setcDate(String cDate) {
+	public void setcDate(Date cDate) {
 		this.cDate = cDate;
 	}
 

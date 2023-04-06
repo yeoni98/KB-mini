@@ -45,16 +45,16 @@ public class CoinDAOImpl implements CoinDAO {
 		try {
 			conn = getConnect();
 			
-	        String query = "SELECT * FROM coin where c_code = ?";
+	        String query = "SELECT c_code, c_name, c_nowprice FROM coin where c_code = ?";
 	        ps = conn.prepareStatement(query);
 			ps.setString(1, CoinCd);
 
 			rs = ps.executeQuery();
 			
 			if (rs.next()) {
-				return new Coin(rs.getString("cCode"), 
-						rs.getString("cName"),
-						rs.getInt("cNowPrice"));
+				return new Coin(rs.getString("c_code"), 
+						rs.getString("c_name"),
+						rs.getInt("c_nowprice"));
 			} else {
 				throw new RecordNotFoundException("존재하지 않는 코인입니다. ");
 			}

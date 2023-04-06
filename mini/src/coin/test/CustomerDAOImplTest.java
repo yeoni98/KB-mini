@@ -1,4 +1,4 @@
-package coin.customer.test;
+package coin.test;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
