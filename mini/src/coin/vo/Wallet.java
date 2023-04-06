@@ -1,30 +1,58 @@
 package coin.vo;
 
+//import java.sql.Date;
+import java.util.Date;
+
+
 public class Wallet {
 
-    private Integer Id;
-    private Integer walNo;
-    private String cCode;
-    private Integer cQuantity;
-    private Integer cDealPrice;
+    private int walNo;
+	private String cCode;
+    private double cQuantity;
+    private double cDealPrice;
     private String cDealType;
-    private String cDealDate;
+    private Date cDealDate;
+    private String accountNo;
+    
+    
+    
+    public Wallet(int walNo, String cCode, double cQuantity, double cDealPrice, String cDealType, Date cDealDate,
+			String accountNo) {
+		super();
+		this.walNo = walNo;
+		this.cCode = cCode;
+		this.cQuantity = cQuantity;
+		this.cDealPrice = cDealPrice;
+		this.cDealType = cDealType;
+		this.cDealDate = cDealDate;
+		this.accountNo = accountNo;
+	}
 
-    public Integer getId() {
-        return Id;
-    }
+
+
+
+	public Wallet(String cCode, double cQuantity, double cDealPrice, String cDealType,
+			String accountNo) {
+		super();
+		this.cCode = cCode;
+		this.cQuantity = cQuantity;
+		this.cDealPrice = cDealPrice;
+		this.cDealType = cDealType;
+		this.accountNo = accountNo;
+	}
     
-    public void setId(Integer id) {
-        Id = id;
-    }
+
+	
+
+    public int getWalNo() {
+		return walNo;
+	}
+
+	public void setWalNo(int walNo) {
+		this.walNo = walNo;
+	}
+
     
-    public Integer getWalNo() {
-        return walNo;
-    }
-    
-    public void setWalNo(Integer walNo) {
-        this.walNo = walNo;
-    }
     
     public String getcCode() {
         return cCode;
@@ -34,7 +62,7 @@ public class Wallet {
         this.cCode = cCode;
     }
     
-    public Integer getcQuantity() {
+    public double getcQuantity() {
         return cQuantity;
     }
     
@@ -42,7 +70,7 @@ public class Wallet {
         this.cQuantity = cQuantity;
     }
     
-    public Integer getcDealPrice() {
+    public double getcDealPrice() {
         return cDealPrice;
     }
     
@@ -58,20 +86,26 @@ public class Wallet {
         this.cDealType = cDealType;
     }
     
-    public String getcDealDate() {
+    public Date getcDealDate() {
         return cDealDate;
     }
     
-    public void setcDealDate(String cDealDate) {
+    public void setcDealDate(Date cDealDate) {
         this.cDealDate = cDealDate;
     }
 
     @Override
     public String toString() {
-        return "Wallet [Id=" + Id + ", walNo=" + walNo + ", cCode=" + cCode + ", cQuantity=" + cQuantity
+        return "Wallet [walNo=" + walNo + ", cCode=" + cCode + ", cQuantity=" + cQuantity
 
             + ", cDealPrice=" + cDealPrice + ", cDealType=" + cDealType + ", cDealDate=" + cDealDate + "]";
     }
+
+	public String getAccountNo() {
+		return accountNo;
+	}
+
+	
 }
 
 
