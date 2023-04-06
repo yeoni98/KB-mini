@@ -6,7 +6,6 @@ public class Coin {
     private String cName;
     private int cNowPrice;
 
-
 	public Coin(String cCode, String cName, int cNowPrice) {
 		super();
 		this.cCode = cCode;
