@@ -1,18 +1,15 @@
 package coin.vo;
 
-public class Account extends WalletNo {	
+public class Account {	
 	private String accountNo;
 	private String custNo;
 	private int balance;
 	private int status;
 	private String cDate;
 	
-	public Account(int walNo) {
-		super(walNo);
-	}
-	
-	public Account(int walNo, String accountNo, String custNo, int balance, int status, String cDate) {
-		super(walNo);
+
+	public Account(String accountNo, String custNo, int balance, int status, String cDate) {
+		super();
 		this.accountNo = accountNo;
 		this.custNo = custNo;
 		this.balance = balance;
