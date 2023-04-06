@@ -1,4 +1,4 @@
-package coin.dao;
+package coin.customer;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

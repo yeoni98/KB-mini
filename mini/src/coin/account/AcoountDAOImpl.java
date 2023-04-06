@@ -268,21 +268,24 @@ public class AcoountDAOImpl implements AccountDAO {
 		try {
 			conn = getConnect();
 
-			String buyCoinQuery = "SELECT * FROM wallet WHERE account_no = ? and c_code = ? and c_dealtype = 0";
+			String buyCoinQuery = "SELECT COUNT(*) FROM wallet WHERE account_no = ? and c_code = ? and c_dealtype = 0 GROUP BY c_code, c_dealtype";
+			 
 			ps1 = conn.prepareStatement(buyCoinQuery);
 			ps1.setString(1, accountNo);
 			ps1.setString(2, coinCd);
 			
 			rs1 = ps1.executeQuery();
-			while (rs1.next()) buyCoinCnt++;
+			buyCoinCnt = rs1.getInt(1);
+//			while (rs1.next()) buyCoinCnt++;
 			
-			String sellCoinQuery = "SELECT * FROM wallet WHERE account_no = ? and c_code = ? and c_dealtype = 1";
+			String sellCoinQuery = "SELECT COUNT(*) FROM wallet WHERE account_no = ? and c_code = ? and c_dealtype = 1 GROUP BY c_code, c_dealtype";
 			ps2 = conn.prepareStatement(sellCoinQuery);
 			ps2.setString(1, accountNo);
 			ps2.setString(2, coinCd);
 			
 			rs2 = ps2.executeQuery();
-			while (rs2.next()) sellCoinCnt++;
+			sellCoinCnt = rs2.getInt(1);
+//			while (rs2.next()) sellCoinCnt++;
 		} finally {
 			closeAll(ps1, null);
 			closeAll(ps2, conn);

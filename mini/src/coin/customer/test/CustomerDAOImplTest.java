@@ -1,9 +1,9 @@
-package coin.test;
+package coin.customer.test;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import coin.dao.CustomerDAOImpl;
+import coin.customer.CustomerDAOImpl;
 import coin.vo.Customer;
 
 public class CustomerDAOImplTest {
