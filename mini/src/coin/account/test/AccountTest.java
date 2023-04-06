@@ -14,7 +14,7 @@ public class AccountTest {
 //				System.out.println("사용 불가능 계좌");
 //			}
 //			
-			dao.getAccountBalance("6665-1538-3541-8923423483");
+			System.out.println(dao.getAccountBalance(1) + "원");
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}

@@ -1,14 +1,18 @@
 package coin.account;
 
+import java.io.NotActiveException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import coin.coin.CoinDAOImpl;
 import coin.exception.AlreadyHasAccountException;
+import coin.exception.NotEfficientException;
 import coin.exception.RecordNotFoundException;
-
+import coin.vo.Account;
+import coin.vo.Coin;
 import config.ServerInfo;
 
 public class AcoountDAOImpl implements AccountDAO {
@@ -153,7 +157,7 @@ public class AcoountDAOImpl implements AccountDAO {
 	}
 
 	@Override
-	public int getAccountBalance(String accountNo) throws SQLException, RecordNotFoundException {
+	public int getAccountBalance(int custNo) throws SQLException, RecordNotFoundException {
 		Connection conn = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
@@ -161,22 +165,173 @@ public class AcoountDAOImpl implements AccountDAO {
 		try {
 			conn = getConnect();
 
-			String query = "SELECT balance FROM account WHERE account_no = ?";
+			String query = "SELECT balance FROM account WHERE cust_no = ?";
 			
 			ps = conn.prepareStatement(query);
-			ps.setString(1, accountNo);
+			ps.setInt(1, custNo);
 			
 			rs = ps.executeQuery();
 			
 			if (rs.next()) {
 				rs.getInt("balance");
 			} else {
-				throw new RecordNotFoundException("존재하지 않는 계좌입니다.");
+				throw new RecordNotFoundException("존재하지 않는 회원입니다.");
 			}
 		} finally {
 			closeAll(ps, conn);
 		}	
 		
 		return 0;
+	}
+	
+	@Override
+	public Account getAccountInfo(int custNo) throws SQLException, RecordNotFoundException {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		try {
+			conn = getConnect();
+
+			String query = "SELECT * FROM account WHERE cust_no = ?";
+			
+			ps = conn.prepareStatement(query);
+			ps.setInt(1, custNo);
+			
+			rs = ps.executeQuery();
+			
+			if (rs.next()) {
+				return new Account(rs.getString("account_no"), rs.getString("cust_no"), rs.getInt("balance"), rs.getInt("status"), rs.getString("cDate"));
+			} else {
+				throw new RecordNotFoundException("존재하지 않는 회원입니다.");
+			}
+		} finally {
+			closeAll(ps, conn);
+		}		
+	}
+
+	@Override
+	public void buyCoin(int custNo, String coinCd, int quentity) throws SQLException, RecordNotFoundException {
+		Connection conn = null;
+		PreparedStatement ps = null;
+
+		try {
+			conn = getConnect();
+			conn.setAutoCommit(false);	
+			
+			// 잔액 조회
+			Account accountInfo = getAccountInfo(custNo);
+			
+			// 해당 코인 가격 가져오기
+			CoinDAOImpl coinDAOImpl = CoinDAOImpl.getInstance();
+			Coin coinInfo = coinDAOImpl.getCoinByCoinCd(coinCd);
+			int total = coinInfo.getcNowPrice() * quentity;
+			
+			// 잔액이 충분한지 체크
+			if (accountInfo.getBalance() >= total) {
+				int balance = accountInfo.getBalance() - total;
+				
+				String query = "UPDATE account SET balance = ? WHERE account_no = ?";
+				
+				ps = conn.prepareStatement(query);
+				ps.setInt(1, balance);
+				ps.setInt(2, custNo);
+
+				ps.executeUpdate();
+				
+				// TODO: insertWallet (다연이하는중)
+				
+				conn.commit();
+			} else {
+				throw new NotEfficientException("잔고가 충분하지 않습니다. ");
+			}
+		} catch(Exception e) {
+			conn.rollback();
+		} finally {
+			closeAll(ps, conn);
+		}
+	}
+	
+	private int getCountCoin(String accountNo, String coinCd) throws SQLException {
+		Connection conn = null;
+
+		// 매수 코인
+		PreparedStatement ps1 = null;
+		ResultSet rs1 = null;
+		int buyCoinCnt = 0;
+
+		// 매도 코인
+		PreparedStatement ps2 = null;
+		ResultSet rs2 = null;
+		int sellCoinCnt = 0;
+		
+		try {
+			conn = getConnect();
+
+			String buyCoinQuery = "SELECT * FROM wallet WHERE account_no = ? and c_code = ? and c_dealtype = 0";
+			ps1 = conn.prepareStatement(buyCoinQuery);
+			ps1.setString(1, accountNo);
+			ps1.setString(2, coinCd);
+			
+			rs1 = ps1.executeQuery();
+			while (rs1.next()) buyCoinCnt++;
+			
+			String sellCoinQuery = "SELECT * FROM wallet WHERE account_no = ? and c_code = ? and c_dealtype = 1";
+			ps2 = conn.prepareStatement(sellCoinQuery);
+			ps2.setString(1, accountNo);
+			ps2.setString(2, coinCd);
+			
+			rs2 = ps2.executeQuery();
+			while (rs2.next()) sellCoinCnt++;
+		} finally {
+			closeAll(ps1, null);
+			closeAll(ps2, conn);
+		}
+		
+		return buyCoinCnt - sellCoinCnt;		
+	}
+ 
+	@Override
+	public void sellCoin(int custNo, String coinCd, int quentity) throws SQLException, RecordNotFoundException {
+		Connection conn = null;
+		PreparedStatement ps = null;
+
+		try {
+			// 1. 보유 코인이 구매하고자하는 수량만큼 보유하고있는지 확인
+			conn = getConnect();
+			conn.setAutoCommit(false);	
+			
+			// 잔액 조회
+			Account accountInfo = getAccountInfo(custNo);
+			int hasCoinCnt = getCountCoin(accountInfo.getAccountNo(), coinCd);
+			
+			// 해당 코인 가격 가져오기
+			CoinDAOImpl coinDAOImpl = CoinDAOImpl.getInstance();
+			Coin coinInfo = coinDAOImpl.getCoinByCoinCd(coinCd);
+			int total = coinInfo.getcNowPrice() * quentity;
+			
+			// 2. 없으면 에러
+			if (hasCoinCnt >= quentity) {
+				int balance = accountInfo.getBalance() + total;
+				
+				String query = "UPDATE account SET balance = ? WHERE account_no = ?";
+				
+				ps = conn.prepareStatement(query);
+				ps.setInt(1, balance);
+				ps.setInt(2, custNo);
+
+				ps.executeUpdate();
+				
+				// TODO: insertWallet (다연이하는중)
+				
+				conn.commit();
+			} else {
+				throw new NotEfficientException("보유 코인이 충분하지 않습니다. ");
+			}
+		} catch(Exception e) {
+			conn.rollback();
+		} finally {
+			closeAll(ps, conn);
+		}
 	}
 }
